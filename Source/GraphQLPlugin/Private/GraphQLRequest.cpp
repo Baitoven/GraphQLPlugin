@@ -1,10 +1,7 @@
 #include "GraphQLRequest.h"
+#include "GraphQLClient.h"
 
-void UGraphQLRequest::Send()
-{
-}
-
-void UGraphQLRequest::Create()
+UGraphQLRequest::UGraphQLRequest()
 {
 	UWorld* World = GetWorld();
 	if (World)
@@ -15,4 +12,9 @@ void UGraphQLRequest::Create()
 			GraphQLClient = GameInstance->GetSubsystem<UGraphQLClient>();
 		}
 	}
+}
+
+void UGraphQLRequest::Send()
+{
+	GraphQLClient->SendRequest(FString(TEXT("")));
 }

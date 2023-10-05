@@ -9,11 +9,10 @@ class UGraphQLRequest : public UObject
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintCallable)
-	void Send();
+	UGraphQLRequest();
 
 	UFUNCTION(BlueprintCallable)
-	void Create();
+	void Send();
 
 protected:
 
@@ -21,5 +20,5 @@ private:
 	FString GraphQLEndpoint{ TEXT("") };
 	FString RequestText{ TEXT("") };
 
-	class UGraphQLClient* GraphQLClient;
+	UGraphQLClient* GraphQLClient;
 };
