@@ -1,6 +1,8 @@
 #include "GraphQLClient.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
+#include "Serialization/JsonWriter.h"
+#include "Serialization/JsonSerializer.h"
 
 UGraphQLClient::UGraphQLClient()
 {
@@ -19,7 +21,6 @@ void UGraphQLClient::SendRequest(FString Query)
 	Request->SetHeader("Content-Type", TEXT("application/json"));
 
 	Request->ProcessRequest();
-	UE_LOG(LogTemp, Warning, TEXT("Request sent"));
 }
 
 void UGraphQLClient::SetGraphQLURI(FString URI)
@@ -29,9 +30,41 @@ void UGraphQLClient::SetGraphQLURI(FString URI)
 
 void UGraphQLClient::OnSendRequestComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	UE_LOG(LogTemp, Warning, TEXT("The response code is {%i}"), Response->GetResponseCode());
-	FString ResponseString = Response->GetContentAsString();
-	UE_LOG(LogTemp, Warning, TEXT("The response is {%s}"), *ResponseString);
+	OnResponseEvent.Broadcast(*Response->GetContentAsString(), Response->GetResponseCode());
+}
+
+FString UGraphQLClient::MakeResponse(FString Response)
+{
+	TSharedPtr<FJsonObject> Json;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response);
+	if (FJsonSerializer::Deserialize(Reader, Json))
+	{
+		TSharedPtr<FJsonObject> Data = Json->GetObjectField(FString("data"));
+		FString Output;
+		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
+		FJsonSerializer::Serialize(Data.ToSharedRef(), Writer);
+		return Output;
+	}
+	return FString("");
+}
+
+FString UGraphQLClient::MakeRequest(FString Query, TMap<FString, FString> Variables)
+{
+	FString Data = FString();
+	for (auto& Variable : Variables) {
+		if (!Data.IsEmpty()) {
+			Data = Data.Append(FString(", "));
+		}
+		Data = Data.Append(Variable.Key + FString(": \"") + Variable.Value + FString("\""));
+	}
+	FString LeftString, RightString;
+	Query.Split(FString("VARIABLES"), &LeftString, &RightString);
+	TSharedPtr<FJsonObject> Json = MakeShareable(new FJsonObject);
+	Json->SetStringField(FString("query"), *LeftString + Data + *RightString);
+	FString Output;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
+	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
+	return Output;
 }
 
 

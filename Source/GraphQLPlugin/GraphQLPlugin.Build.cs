@@ -26,7 +26,8 @@ public class GraphQLPlugin : ModuleRules
 			new string[]
 			{
                 "Core",
-				"HTTP"
+				"HTTP",
+				"Json"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
