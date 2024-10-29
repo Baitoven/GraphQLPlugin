@@ -9,20 +9,20 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnResponseEvent, FString, ResponseBody, int32, ResponseCode);
 
 UCLASS()
-class UGraphQLClient : public UGameInstanceSubsystem
+class GRAPHQLPLUGIN_API UGraphQLClient : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 public:
 	UGraphQLClient();
 
 	UFUNCTION(BlueprintCallable)
-	void SendRequest(FString Query);
+	void SendRequest(FString Query, FString Token);
 
 	UFUNCTION(BlueprintCallable)
 	void SetGraphQLURI(FString URI);
 
 	UFUNCTION(BlueprintCallable)
-	FString MakeRequest(FString Query, TMap<FString, FString> Variables);
+	FString MakeRequest(FGraphQLRequestStruct Query, FString QueryName);
 
 	UFUNCTION(BlueprintCallable)
 	FString MakeResponse(FString Response);

@@ -40,6 +40,7 @@ public class GraphQLPlugin : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"JsonUtilities"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

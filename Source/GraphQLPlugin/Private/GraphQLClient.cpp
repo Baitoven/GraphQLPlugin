@@ -3,13 +3,15 @@
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
+#include <GraphQLRequestStruct.h>
+#include <JsonObjectConverter.h>
 
 UGraphQLClient::UGraphQLClient()
 {
 	Http = &FHttpModule::Get();
 }
 
-void UGraphQLClient::SendRequest(FString Query)
+void UGraphQLClient::SendRequest(FString Query, FString Token)
 {
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, &UGraphQLClient::OnSendRequestComplete);
@@ -19,6 +21,7 @@ void UGraphQLClient::SendRequest(FString Query)
 	Request->SetContentAsString(Query);
 	Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
 	Request->SetHeader("Content-Type", TEXT("application/json"));
+	Request->SetHeader("Authorization", Token);
 
 	Request->ProcessRequest();
 }
@@ -48,23 +51,14 @@ FString UGraphQLClient::MakeResponse(FString Response)
 	return FString("");
 }
 
-FString UGraphQLClient::MakeRequest(FString Query, TMap<FString, FString> Variables)
+FString UGraphQLClient::MakeRequest(FGraphQLRequestStruct Query, FString QueryName)
 {
-	FString Data = FString();
-	for (auto& Variable : Variables) {
-		if (!Data.IsEmpty()) {
-			Data = Data.Append(FString(", "));
-		}
-		Data = Data.Append(Variable.Key + FString(": \"") + Variable.Value + FString("\""));
-	}
-	FString LeftString, RightString;
-	Query.Split(FString("VARIABLES"), &LeftString, &RightString);
-	TSharedPtr<FJsonObject> Json = MakeShareable(new FJsonObject);
+	/*TSharedPtr<FJsonObject> Json = MakeShareable(new FJsonObject);
 	Json->SetStringField(FString("query"), *LeftString + Data + *RightString);
 	FString Output;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
-	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
+	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);*/
+	FString Output;
+	FJsonObjectConverter::UStructToJsonObjectString(Query, Output, 0, 0);
 	return Output;
 }
-
-
